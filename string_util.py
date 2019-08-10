@@ -8,7 +8,7 @@ EOT_MARKER = '\x03'
 def normalize_string(inp: str, normalize_unicode: bool = True, strip_accents: bool = True, strip_control: bool = True,
                      normalize_space: bool = True, lower_case: bool = True,
                      custom_transforms: List[Tuple[Callable, Callable]] = None,
-                     eos_marker: bool = True):
+                     eos_marker: bool = True) -> str:
     if custom_transforms is None:
         custom_transforms = []
     normalized = unicodedata.normalize('NFKD', inp) if normalize_unicode else inp
@@ -31,7 +31,7 @@ def normalize_string(inp: str, normalize_unicode: bool = True, strip_accents: bo
     return ''.join(res)
 
 
-def encode_string(inp: str, alphabet: str):
+def encode_string(inp: str, alphabet: str) -> List[int]:
     encoded = []
     for c in inp:
         try:
@@ -43,3 +43,15 @@ def encode_string(inp: str, alphabet: str):
             else:
                 encoded.append(len(alphabet) + 2)
     return encoded
+
+
+def decode_string(inp: List[int], alphabet: str, unknown_marker='�') -> str:
+    decoded = []
+    for i in inp:
+        if i == len(alphabet) + 1:
+            decoded.append(unknown_marker)
+        elif i == len(alphabet) + 2:
+            decoded.append(EOT_MARKER)
+        else:
+            decoded.append(alphabet[i])
+    return ''.join(decoded)
