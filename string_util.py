@@ -1,0 +1,45 @@
+from typing import List, Tuple, Callable
+import unicodedata
+
+
+EOT_MARKER = '\x03'
+
+
+def normalize_string(inp: str, normalize_unicode: bool = True, strip_accents: bool = True, strip_control: bool = True,
+                     normalize_space: bool = True, lower_case: bool = True,
+                     custom_transforms: List[Tuple[Callable, Callable]] = None,
+                     eos_marker: bool = True):
+    if custom_transforms is None:
+        custom_transforms = []
+    normalized = unicodedata.normalize('NFKD', inp) if normalize_unicode else inp
+    res = []
+    for c in normalized:
+        if strip_accents and unicodedata.combining(c):
+            continue
+        if strip_control and unicodedata.category(c)[0] == 'C':
+            continue
+        if normalize_space and unicodedata.category(c)[0] == 'Z':
+            c = ' '
+        if lower_case:
+            c = c.lower()
+        for p, t in custom_transforms:
+            if p(c):
+                c = t(c)
+        res.append(c)
+    if eos_marker:
+        res.append(EOT_MARKER)
+    return ''.join(res)
+
+
+def encode_string(inp: str, alphabet: str):
+    encoded = []
+    for c in inp:
+        try:
+            i = alphabet.index(c)
+            encoded.append(i)
+        except ValueError:
+            if c != EOT_MARKER:
+                encoded.append(len(alphabet) + 1)
+            else:
+                encoded.append(len(alphabet) + 2)
+    return encoded
