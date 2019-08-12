@@ -39,18 +39,18 @@ def encode_string(inp: str, alphabet: str) -> List[int]:
             encoded.append(i)
         except ValueError:
             if c != EOT_MARKER:
-                encoded.append(len(alphabet) + 1)
+                encoded.append(len(alphabet))
             else:
-                encoded.append(len(alphabet) + 2)
+                encoded.append(len(alphabet) + 1)
     return encoded
 
 
 def decode_string(inp: List[int], alphabet: str, unknown_marker='�') -> str:
     decoded = []
     for i in inp:
-        if i == len(alphabet) + 1:
+        if i == len(alphabet):
             decoded.append(unknown_marker)
-        elif i == len(alphabet) + 2:
+        elif i == len(alphabet) + 1:
             decoded.append(EOT_MARKER)
         else:
             decoded.append(alphabet[i])
