@@ -1,11 +1,14 @@
 import torch
 import torch.nn
+import tqdm
+from pyro.infer import SVI, JitTrace_ELBO
 from torch.nn import functional as nnf
 
 import pyro
 import pyro.distributions as dist
 from pyro import poutine
 from pyro.util import ignore_jit_warnings
+from pyro.optim import Adam
 from torch.distributions import constraints
 
 from neural_emitter import NeuralEmitter
@@ -69,6 +72,17 @@ class StringMarkovModel(torch.nn.Module):
                     gru_out_t, h_t = self.gru.forward(x_t, h_t)
                     pseudo_counts_t = self.neural_emitter.forward(gru_out_t)
                     probs_t = pyro.sample(f'probs_{t}', dist.Dirichlet(pseudo_counts_t))
+
+
+    def infer(self, lengths, sequences, num_iterations=100):
+        optim = Adam(dict(lr=1e-3))
+        elbo = JitTrace_ELBO()
+        svi = SVI(self.model, self.guide, optim, elbo)
+        pbar = tqdm.tqdm(range(num_iterations))
+        for i in pbar:
+            loss = svi.step(lengths, sequences)
+            pbar.set_description(f'Epoch {i}: {loss}')
+
 
     def forward(self):
         tr = poutine.trace(self.model).get_trace()
