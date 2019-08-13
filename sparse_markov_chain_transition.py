@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import torch
 
@@ -39,12 +39,9 @@ class SparseMarkovChainTransition:
                 elem = int(prior_chains[1][i, j])
                 if len(prev) > self.order:
                     prev = prev[1:]
-                if j == 0:
-                    self._transition_tables[j][elem] += 1
-                else:
-                    self._transition_tables[min(j, self.order)][prev][elem] += 1
-                prev = prev + (elem,)
+                self._transition_tables[min(j, self.order)][(*prev, elem)] += 1
+                prev = (*prev, elem)
 
-    def get_pseudocounts(self, prev: List[torch.Tensor]):
+    def get_pseudocounts(self, prev: Tuple[torch.Tensor]):
         expected_order = min(len(prev), self.order)
-        return self._transition_tables[expected_order][tuple(prev)[:expected_order]]
+        return self._transition_tables[expected_order][prev[-expected_order:]]
