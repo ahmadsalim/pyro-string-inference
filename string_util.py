@@ -1,6 +1,7 @@
 from typing import List, Tuple, Callable
 import unicodedata
 
+import torch
 
 EOT_MARKER = '\x03'
 
@@ -43,6 +44,14 @@ def encode_string(inp: str, alphabet: str) -> List[int]:
             else:
                 encoded.append(len(alphabet) + 1)
     return encoded
+
+
+def encode_and_pack_list(inp: List[str], alphabet: str, max_chain_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    encoded = [encode_string(normalize_string(w, eos_marker=False), alphabet) for w in inp]
+    lens = torch.tensor([len(w) for w in encoded])
+    encoded = torch.tensor([w + [0] * max(0, max_chain_length - int(l))
+                            for (w, l) in zip(encoded, lens)])
+    return lens, encoded
 
 
 def decode_string(inp: List[int], alphabet: str, unknown_marker='�') -> str:

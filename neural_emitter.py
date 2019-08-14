@@ -17,4 +17,4 @@ class NeuralEmitter(torch.nn.Module):
 
     def forward(self, *input):
         nout = self.network(*input)
-        return torch.exp(nout) + self.smoothing
+        return torch.sigmoid(nout) * 100 + 1

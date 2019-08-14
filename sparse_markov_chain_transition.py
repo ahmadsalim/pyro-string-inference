@@ -11,8 +11,8 @@ class SparseMarkovChainTransition:
         assert 0 < max_chain_length
         assert 0 < order
         assert prior_chains[1].dim() == 2
-        assert 0 <= prior_chains[1].size(-1) < max_chain_length
-        assert 0 <= prior_chains[0].max() < max_chain_length
+        assert 0 <= prior_chains[1].size(-1) <= max_chain_length
+        assert 0 <= prior_chains[0].max() <= max_chain_length
         assert 0 <= prior_chains[1].min()
         assert prior_chains[1].max() < alphabet_size
         assert 0 < smoothing
